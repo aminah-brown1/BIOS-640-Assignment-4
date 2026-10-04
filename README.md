@@ -1,13 +1,11 @@
-# Assignment 3 - 
-The point of the assignment is...
+# BIOS_640_Assignment_3
+## This is a general folder to organize all necessary files
 
+# Data
+This folder includes all of the raw datasets later used for analysis
 
+# Source
+This folder includes all of the scripts, markdowns, and PDFs created with this data
 
-### Data
-
-This folder includes...
-
-### The rest
-
-The rest of the folder is ...
-# BIOS-640-Assignment-4
+# Plots
+This folder includes all of the generated PNG plots from the source files
