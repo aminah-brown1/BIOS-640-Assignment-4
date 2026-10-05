@@ -1,10 +1,14 @@
 ---
-title: "Week 3 Assessment — Data Visualization with ggplot2"
+title: "Week 3 Assessment - Data Visualization with ggplot2"
 author: "Aminah Brown-Roopnarine"
 date: "2026-09-27"
 output:
-  pdf_document:
-    latex_engine: xelatex
+  html_document:
+    theme: cosmo
+    highlight: tango
+    toc: true
+    toc_float: true
+    toc_depth: 3
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
@@ -15,17 +19,19 @@ library(cowplot)
 library(ggpubr)
 library(readr)
 ```
-### Exercise 1 — Reproducing and combining ggplot2 figures
+# Exercise 1 — Reproducing and combining ggplot2 figures {.tabset}
 
 ## The Two figures
 
 ```{r load-data}
-nh <- read_csv("Data /cleaned_NHANES.csv")
+nh <- read_csv("../Data /cleaned_NHANES.csv")
 # Adjust the column names below to match the actual cleaned dataset
 # (e.g., age, gender, ethnicity)
 ```
 
-```{r fig1}
+```{r fig1, echo=FALSE}
+
+# your two figures code here
 # Figure 1: Histogram of age by gender
 p1 <- nh %>%
   ggplot(aes(x = age, fill = gender)) +
@@ -42,7 +48,7 @@ p1 <- nh %>%
 p1
 ```
 
-```{r fig2}
+```{r fig2, echo=FALSE}
 # Figure 2: Stacked bar chart of ethnicity by gender (100% stacked)
 p2 <- nh %>%
   ggplot(aes(x = ethnicity_2, fill = gender)) +
@@ -58,9 +64,10 @@ p2 <- nh %>%
   
 p2
 ```
+
 ## Combined Plots
 
-```{r combine}
+```{r combine, echo=FALSE}
 # With cowplot
 
 combined_cowplot <- plot_grid(p1, p2, labels = c("A", "B"), ncol = 2)
@@ -76,7 +83,7 @@ combined_ggpubr <- ggarrange(p1, p2, labels = c("A", "B"),
 combined_ggpubr
 ```
 
-## Comparing `plot_grid()` and `ggarrange()`
+### Comparing `plot_grid()` and `ggarrange()`
 
 `plot_grid()` (cowplot) is lightweight and gives fine control over axis alignment and the A/B labels. It is excellent when you want perfectly aligned panels.
 
@@ -87,16 +94,16 @@ Based on the core uses of these respective functions, ggarrange() has a better l
 
 For these two plots, `ggarrange()` generally produces a cleaner result because it aligns the two panels automatically and lets you share a common legend — reducing redundancy since both figures use the same gender colors. To elaborate, ggarrange() has “common. legend = TRUE”, which neatly gives you a single "gender" legend instead of two. plot_grid() doesn't do this automatically. Additionally, it aligns the panels nicely, allowing for axis alignment to look polished while finalizing the figure. 
 
-### Exercise 2 — Visualizing key characteristics
+# Exercise 2 — Visualizing key characteristics
 
 ## The four plots
 
 ```{r load-data 2}
-nh <- read_csv("Data /cleaned_NHANES.csv")
+nh <- read_csv("../Data /cleaned_NHANES.csv")
 # Adjust column names to match your actual cleaned dataset
 ```
 
-# Age
+### Age
 
 ```{r ex2-age}
 p_age <- nh %>%
@@ -112,7 +119,7 @@ p_age <- nh %>%
 p_age
 ```
 
-# Gender
+### Gender
 
 ```{r ex2-gender}
 p_gender <- nh %>%
@@ -129,7 +136,7 @@ p_gender <- nh %>%
 p_gender
 ```
 
-# First Ethnicity Variable
+### First Ethnicity Variable
 
 ```{r ex2-eth1}
 p_eth1 <- nh %>%
@@ -145,7 +152,7 @@ p_eth1 + scale_fill_discrete(name = "Ethnicity")
 
 ```
 
-# Second Ethnicity Variable
+### Second Ethnicity Variable
 
 ```{r ex2-eth2}
 p_eth2 <- nh %>%
@@ -161,7 +168,7 @@ p_eth2 + scale_fill_discrete(name = "Ethnicity")
 
 ```
 
-## Missing values
+#### Missing values
 
 ```{r missing}
 sum(is.na(nh$age))
@@ -171,7 +178,7 @@ sum(is.na(nh$ethnicity_2))
 
 ```
 
-## Describing the distributions
+#### Describing the distributions
 
 **Age:** roughly uniform across the adult range (the NHANES sample is designed to be representative), with missing values as reported above.
 
@@ -179,7 +186,7 @@ sum(is.na(nh$ethnicity_2))
 
 **Ethnicity:** uneven distribution, with some groups much more represented than others. Missing values as reported above.
 
-## Saving the plots
+#### Saving the plots
 
 ```{r save-plots}
 ggsave("age_plot.png", p_age, width = 8, height = 5)
@@ -188,7 +195,7 @@ ggsave("ethnicity_1_plot.png", p_eth1, width = 8, height = 5)
 ggsave("ethnicity_2_plot.png", p_eth2, width = 8, height = 5)
 ```
 
-## Comparing the two ethnicity variables
+#### Comparing the two ethnicity variables
 ```{r remove-eth}
 
 # Count how many categories each has
@@ -202,7 +209,7 @@ NHANES contains `RIDRETH1` (5 categories) and `RIDRETH3` (6 categories, adding o
 nh <- nh %>% select(-ethnicity_1)  
 ```
 
-### Exercise 3 — Improving ggplot Figure
+# Exercise 3 — Improving ggplot Figure
 
 ## Problems with the original figure
 
@@ -214,7 +221,7 @@ nh <- nh %>% select(-ethnicity_1)
 ## The improved figure
 
 ```{r load-diet}
-diet <- read_csv("Data /diet.csv")
+diet <- read_csv("../Data /diet.csv")
 ```
 
 ```{r compute-change}
@@ -253,7 +260,7 @@ p_diet
 - **The zero line** makes loss (below 0) vs. gain (above 0) instantly readable.
 - **Reduced opacity** (`alpha = 0.6`) keeps overlapping lines distinguishable despite 19 participants.
 
-### Exercise 4— Exploring relationships through visualizations
+# Exercise 4— Exploring relationships through visualizations
 
 ## Step 1: Average SBP variable
 
@@ -294,7 +301,7 @@ nh_final <- nh_final %>%
 
 ## Step  4: Up to four plots describing the final sample
 
-# 1. Blood pressure category counts
+### 1. Blood pressure category counts
 
 ```{r ex4-plot1}
 p_cat <- nh_final %>%
@@ -309,7 +316,7 @@ p_cat <- p_cat + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 p_cat
 ```
 
-# 2. Gender distribution in the final sample
+### 2. Gender distribution in the final sample
 
 ```{r ex4-plot2}
 p_gender_final <- nh_final %>%
@@ -323,13 +330,13 @@ p_gender_final <- nh_final %>%
 p_gender_final
 ```
 
-# 3. Reuse the age plot saved in Exercise 2
+### 3. Reuse the age plot saved in Exercise 2
 
 ```{r ex4-plot3}
 # Reuse the saved "age_plot.png" from Exercise 2
 ```
 
-# 4. Categorized age
+### 4. Categorized age
 
 ```{r ex4-plot4}
 nh_final <- nh_final %>%
@@ -347,7 +354,7 @@ p_agecat + scale_fill_discrete(name = "Age Category")
 p_agecat
 ```
 
-# Sample size change
+### Sample size change
 
 ```{r sample-size}
 nrow(nh)        # before filtering
@@ -356,7 +363,7 @@ nrow(nh_final)  # after filtering
 
 After removing individuals with missing blood pressure readings, the final sample is smaller than the full dataset. This is expected as the reduction mainly affects younger adults, who are less likely to complete the physical exam component that provides the SBP readings. As a result, the age distribution of the final sample skews slightly older than the full sample.
 
-# Step 5: Hypertension categories across age and gender
+## Step 5: Hypertension categories across age and gender
 
 ```{r ex4-facet}
 p_hyp <- nh_final %>%
