@@ -1,0 +1,152 @@
+---
+title: "A Description of the Cleaned NHANES Dataset"
+author: "Aminah Brown-Roopnarine"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output:
+  pdf_document:
+    toc: false
+bibliography: references.bib
+link-citations: true
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+
+nh <- read_csv("../Data /cleaned_NHANES.csv") %>%
+  rename(wave = wave_id)
+
+# Average systolic blood pressure across the four readings
+nh <- nh %>%
+  mutate(
+    wave = as.character(wave),
+    avg_sbp = rowMeans(
+      select(., systolic_bp_1, systolic_bp_2, systolic_bp_3, systolic_bp_4),
+      na.rm = TRUE
+    ),
+    avg_sbp = ifelse(is.nan(avg_sbp), NA, avg_sbp)
+  )
+
+n_total <- nrow(nh)
+n_waves <- n_distinct(nh$wave)
+```
+
+# Introduction
+
+The National Health and Nutrition Examination Survey (NHANES) is a program of studies run by the National Center for Health Statistics at the Centers for Disease Control and Prevention. It combines interviews with physical examinations to assess the health and nutritional status of the non-institutionalized U.S. population [@nhanes]. The survey is conducted in two-year cycles, called waves, and each wave uses a nationally representative sample.
+
+The cleaned dataset used in this report contains `r format(n_total, big.mark = ",")` participants across `r n_waves` waves. It includes demographic variables (age, gender, and ethnicity) and systolic blood pressure (SBP) measurements. This report describes the sample size and composition of each wave and summarizes average SBP over time.
+
+# Sample Size and Gender by Wave
+
+```{r table1}
+tab1 <- nh %>%
+  group_by(wave) %>%
+  summarise(
+    n = n(),
+    males = sum(gender == "Male", na.rm = TRUE),
+    pct_males = males / n * 100,
+    .groups = "drop"
+  )
+
+tab1 %>%
+  kable(
+    format = "latex", booktabs = TRUE, linesep = "", digits = 1,
+    align = "lrrr", format.args = list(big.mark = ","),
+    col.names = c("Wave", "Participants", "n", "%"),
+    caption = "Overall Sample Size and Number of Males by NHANES Wave"
+  ) %>%
+  add_header_above(c(" " = 2, "Males" = 2)) %>%
+  kable_styling(latex_options = c("hold_position")) %>%
+  row_spec(0, bold = TRUE) %>%
+  column_spec(1, bold = TRUE) %>%
+  column_spec(2, background = "gray!15") %>%
+  footnote(
+    general = "Percentages are calculated out of all participants in each wave.",
+    general_title = "Note:", footnote_as_chunk = TRUE, threeparttable = TRUE
+  )
+```
+
+```{r table1-text}
+big_wave <- tab1$wave[which.max(tab1$n)]
+small_wave <- tab1$wave[which.min(tab1$n)]
+```
+
+Table 1 shows the number of participants in each wave. Wave `r big_wave` is the largest (`r format(max(tab1$n), big.mark = ",")` participants) and wave `r small_wave` is the smallest (`r format(min(tab1$n), big.mark = ",")`). The proportion of males stays fairly stable across waves, ranging from `r round(min(tab1$pct_males), 1)`% to `r round(max(tab1$pct_males), 1)`%, so the gender balance of the sample is consistent over time.
+
+# Ethnicity by Wave
+
+```{r table2}
+tab2 <- nh %>%
+  filter(!is.na(ethnicity_2)) %>%
+  count(wave, ethnicity_2) %>%
+  group_by(wave) %>%
+  mutate(cell = sprintf("%s (%.1f%%)",
+                        formatC(n, big.mark = ",", format = "d"),
+                        n / sum(n) * 100)) %>%
+  ungroup() %>%
+  select(ethnicity_2, wave, cell) %>%
+  pivot_wider(names_from = wave, values_from = cell,
+              values_fill = "0 (0.0%)")
+
+tab2 %>%
+  kable(
+    format = "latex", booktabs = TRUE, linesep = "",
+    align = c("l", rep("r", ncol(tab2) - 1)),
+    col.names = c("Ethnicity", names(tab2)[-1]),
+    caption = "Number and Percentage of Participants by Ethnicity and NHANES Wave"
+  ) %>%
+  add_header_above(c(" " = 1, "Wave" = ncol(tab2) - 1)) %>%
+  kable_styling(latex_options = c("hold_position", "scale_down")) %>%
+  row_spec(0, bold = TRUE) %>%
+  column_spec(1, bold = TRUE) %>%
+  footnote(
+    general = "Cells show n (column %). Percentages exclude participants with missing ethnicity.",
+    general_title = "Note:", footnote_as_chunk = TRUE, threeparttable = TRUE
+  )
+```
+
+Table 2 reports the ethnic composition of each wave. The distribution is uneven, with some groups making up a much larger share of the sample than others, and the shares change somewhat between waves. This reflects NHANES's sampling design, which oversamples certain groups to produce reliable estimates for them.
+
+# Systolic Blood Pressure by Wave
+
+```{r table3}
+tab3 <- nh %>%
+  group_by(wave) %>%
+  summarise(
+    min = min(avg_sbp, na.rm = TRUE),
+    max = max(avg_sbp, na.rm = TRUE),
+    median = median(avg_sbp, na.rm = TRUE),
+    mean = mean(avg_sbp, na.rm = TRUE),
+    sd = sd(avg_sbp, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+hi <- which.max(tab3$mean)
+
+tab3 %>%
+  kable(
+    format = "latex", booktabs = TRUE, linesep = "", digits = 1,
+    align = "lrrrrr",
+    col.names = c("Wave", "Min", "Max", "Median", "Mean", "SD"),
+    caption = "Summary Statistics of Average Systolic Blood Pressure (mm Hg) by NHANES Wave"
+  ) %>%
+  add_header_above(c(" " = 1, "Average SBP (mm Hg)" = 5)) %>%
+  kable_styling(latex_options = c("hold_position")) %>%
+  row_spec(0, bold = TRUE) %>%
+  row_spec(hi, bold = TRUE, background = "yellow!25") %>%
+  column_spec(5, bold = TRUE) %>%
+  footnote(
+    general = "Average SBP is the mean of up to four readings per participant. The highlighted row marks the wave with the highest mean.",
+    general_title = "Note:", footnote_as_chunk = TRUE, threeparttable = TRUE
+  )
+```
+
+Table 3 summarizes average SBP by wave. Mean SBP ranges from `r round(min(tab3$mean), 1)` to `r round(max(tab3$mean), 1)` mm Hg, and the highest mean occurs in wave `r tab3$wave[hi]` (highlighted). Medians are close to the means, which suggests the distributions are only mildly skewed, and the standard deviations are similar across waves, so the spread of blood pressure is stable over time.
+
+# Conclusion
+
+The cleaned NHANES dataset provides a large, consistent sample across waves, with a stable gender balance, an uneven but well-documented ethnic composition, and average systolic blood pressure that changes only modestly from one wave to the next.
+
+# References
