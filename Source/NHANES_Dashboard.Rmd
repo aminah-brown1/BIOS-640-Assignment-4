@@ -1,0 +1,80 @@
+---
+title: "NHANES Dashboard"
+author: "Aminah Brown-Roopnarine"
+date: "2026-10-05"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+---
+
+```{r setup, include=FALSE}
+# Step 2: packages and data
+library(tidyverse)
+library(flexdashboard)
+
+nh <- read_csv("../Data /cleaned_NHANES.csv")
+
+# Average SBP across the four readings (needed for the value box)
+nh <- nh %>%
+  mutate(
+    avg_sbp = rowMeans(
+      select(., systolic_bp_1, systolic_bp_2, systolic_bp_3, systolic_bp_4),
+      na.rm = TRUE
+    ),
+    avg_sbp = ifelse(is.nan(avg_sbp), NA, avg_sbp)
+  )
+```
+
+Row {data-height=650}
+-------------------------------------
+
+### Age distribution by gender
+
+```{r age-gender-plot}
+nh %>%
+  ggplot(aes(x = age, fill = gender)) +
+  geom_histogram(binwidth = 5, position = "dodge", alpha = 0.7) +
+  scale_fill_manual(values = c("salmon", "#008080")) +
+  labs(
+    title = "Distribution of Age by Gender",
+    x = "Age (years)",
+    y = "Count",
+    fill = "Gender"
+  ) +
+  theme_minimal()
+```
+
+Row {data-height=350}
+-------------------------------------
+
+### Individuals aged 21 or older (%)
+
+```{r gauge-age}
+pct_21 <- round(mean(nh$age >= 21, na.rm = TRUE) * 100, 1)
+
+gauge(
+  value = pct_21,
+  min = 0,
+  max = 100,
+  symbol = "%",
+  gaugeSectors(
+    success = c(80, 100),
+    warning = c(50, 79),
+    danger  = c(0, 49)
+  )
+)
+```
+
+### Average SBP above 120 mm Hg
+
+```{r valuebox-sbp}
+pct_sbp <- round(mean(nh$avg_sbp > 120, na.rm = TRUE) * 100, 1)
+
+valueBox(
+  value = paste0(pct_sbp, "%"),
+  caption = "of individuals have an average systolic BP above 120 mm Hg",
+  icon = "fa-heartbeat",
+  color = "orange"
+)
+```
+
