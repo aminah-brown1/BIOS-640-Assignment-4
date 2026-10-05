@@ -12,3 +12,6 @@ This folder includes all of the generated PNG plots from the source files
 
 # Dashboard
 This folder displays all of the rendered HTML files 
+
+# Report 
+This folder has the finalized, cleaned version of the report 
