@@ -9,3 +9,6 @@ This folder includes all of the scripts, markdowns, and PDFs created with this d
 
 # Plots
 This folder includes all of the generated PNG plots from the source files
+
+# Dashboard
+This folder displays all of the rendered HTML files 
